@@ -1,9 +1,11 @@
+import gleam/dynamic
 import gleam/http/request
 import gleam/http/response.{type Response as HttpResponse}
 import gleam/httpc
 import gleam/int
 import gleam/json
 import gleam/result
+import gleam/string
 import wisp.{type Response}
 
 const weather_api: String = "https://api.open-meteo.com/v1/forecast"
@@ -30,14 +32,58 @@ type WeatherResponse {
 
 /// handler for getting weather forecast
 pub fn get_weather() -> Response {
-  case fetch_weather() {
-    Ok(value) -> {
-      json.string(value.body)
+  case get_weather_api_result() {
+    Ok(weather_response) -> {
+      encode_api_response(weather_response)
       |> json.to_string_builder
       |> wisp.json_response(200)
     }
     Error(msg) -> error_response(msg)
   }
+}
+
+fn hourly_units_decorder() {
+  dynamic.decode2(
+    HourlyUnits,
+    dynamic.field("time", dynamic.string),
+    dynamic.field("temperature_2m", dynamic.string),
+  )
+}
+
+fn hourly_decoder() {
+  dynamic.decode2(
+    Hourly,
+    dynamic.field("time", dynamic.list(dynamic.string)),
+    dynamic.field("temperature_2m", dynamic.list(dynamic.float)),
+  )
+}
+
+fn api_response_decoder() {
+  dynamic.decode7(
+    WeatherResponse,
+    dynamic.field("latitude", dynamic.float),
+    dynamic.field("longitude", dynamic.float),
+    dynamic.field("timezone", dynamic.string),
+    dynamic.field("timezone_abbreviation", dynamic.string),
+    dynamic.field("elevation", dynamic.float),
+    dynamic.field("hourly_units", hourly_units_decorder()),
+    dynamic.field("hourly", hourly_decoder()),
+  )
+}
+
+/// Encode a Pokemon object into a JSON object
+fn encode_api_response(weather_response: WeatherResponse) {
+  // TODO: Need to encode hour_units and hourly
+  json.object([
+    #("latitude", json.float(weather_response.latitude)),
+    #("longitude", json.float(weather_response.longitude)),
+    #("timezone", json.string(weather_response.timezone)),
+    #(
+      "timezone_abbreviation",
+      json.string(weather_response.timezone_abbreviation),
+    ),
+    #("elevation", json.float(weather_response.elevation)),
+  ])
 }
 
 // Fetch weather from weather api. See: https://open-meteo.com/en/docs
@@ -66,6 +112,17 @@ fn fetch_weather() -> Result(HttpResponse(String), String) {
         <> " from api.open-meteo.com: "
         <> forecast_query,
       )
+  }
+}
+
+fn get_weather_api_result() -> Result(WeatherResponse, String) {
+  use resp <- result.try(fetch_weather())
+
+  case json.decode(from: resp.body, using: api_response_decoder()) {
+    Ok(weather_response) -> Ok(weather_response)
+    // Error(decode_error) -> Error("Failed to get Response from Weather API")
+    // TODO: For debugging, remove
+    Error(decode_error) -> Error(string.inspect(decode_error))
   }
 }
 
