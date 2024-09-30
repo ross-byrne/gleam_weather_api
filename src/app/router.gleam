@@ -1,3 +1,4 @@
+import app/api
 import app/pages/home
 import app/web
 import lustre/element
@@ -11,6 +12,7 @@ pub fn handle_request(req: Request) -> Response {
     [] -> {
       show_home()
     }
+    ["weather"] -> api.get_weather()
     _ -> wisp.not_found()
   }
 }
