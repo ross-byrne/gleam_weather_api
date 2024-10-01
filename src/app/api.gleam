@@ -5,12 +5,11 @@ import gleam/httpc
 import gleam/int
 import gleam/json
 import gleam/result
-import gleam/string
 import wisp.{type Response}
 
 /// handler for getting weather forecast
 pub fn get_weather() -> Response {
-  case get_weather_api_result() {
+  case decoded_api_response() {
     Ok(response) -> {
       weather.api_response_encoder(response)
       |> json.to_string_builder
@@ -32,6 +31,7 @@ fn fetch_weather() -> Result(HttpResponse(String), String) {
 
   // return response from api endpoint
   use resp <- result.try(resp_result)
+
   case resp.status {
     200 -> Ok(resp)
     _ ->
@@ -43,14 +43,13 @@ fn fetch_weather() -> Result(HttpResponse(String), String) {
   }
 }
 
-fn get_weather_api_result() -> Result(ApiResponse, String) {
+/// Decode weather api response
+fn decoded_api_response() -> Result(ApiResponse, String) {
   use resp <- result.try(fetch_weather())
 
   case json.decode(from: resp.body, using: weather.api_response_decoder()) {
     Ok(response) -> Ok(response)
-    // Error(decode_error) -> Error("Failed to get Response from Weather API")
-    // TODO: For debugging, remove
-    Error(decode_error) -> Error(string.inspect(decode_error))
+    Error(_) -> Error("Failed to get Response from Weather API")
   }
 }
 

@@ -9,9 +9,7 @@ pub fn handle_request(req: Request) -> Response {
 
   case wisp.path_segments(req) {
     // Homepage
-    [] -> {
-      show_home()
-    }
+    [] -> show_home()
     ["weather"] -> api.get_weather()
     _ -> wisp.not_found()
   }
