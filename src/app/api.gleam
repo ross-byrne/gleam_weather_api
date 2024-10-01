@@ -20,20 +20,15 @@ pub fn get_weather() -> Response {
   }
 }
 
-// Fetch weather from weather api. See: https://open-meteo.com/en/docs
+/// Fetch weather from weather api. See: https://open-meteo.com/en/docs
 fn fetch_weather() -> Result(HttpResponse(String), String) {
-  let forecast_query =
-    "?latitude=44.4048&longitude=8.9444&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,wind_speed_10m&timezone=Europe%2FBerlin"
-
   // build request for fetching weather
-  let assert Ok(req) = request.to(weather.base_api <> forecast_query)
+  let assert Ok(req) = request.to(weather.base_api)
 
   // execute request
   let resp_result =
     httpc.send(req)
-    |> result.replace_error(
-      "Failed to make request to api.open-meteo.com with: " <> forecast_query,
-    )
+    |> result.replace_error("Failed to make request to api.open-meteo.com")
 
   // return response from api endpoint
   use resp <- result.try(resp_result)
@@ -43,8 +38,7 @@ fn fetch_weather() -> Result(HttpResponse(String), String) {
       Error(
         "Got status "
         <> int.to_string(resp.status)
-        <> " from api.open-meteo.com: "
-        <> forecast_query,
+        <> " from api.open-meteo.com",
       )
   }
 }

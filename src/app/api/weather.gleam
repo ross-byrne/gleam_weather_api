@@ -1,7 +1,7 @@
 import gleam/dynamic
 import gleam/json
 
-pub const base_api: String = "https://api.open-meteo.com/v1/forecast"
+pub const base_api: String = "https://api.open-meteo.com/v1/forecast?latitude=44.4048&longitude=8.9444&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,wind_speed_10m&timezone=Europe%2FBerlin"
 
 // Current Units
 pub type CurrentUnits {
