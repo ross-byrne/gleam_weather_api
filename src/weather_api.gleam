@@ -1,6 +1,5 @@
 import app/router
 import dot_env
-import dot_env/env
 import gleam/erlang/process
 import mist
 import wisp
@@ -16,7 +15,7 @@ pub fn main() {
   |> dot_env.load
 
   // get secret key
-  let assert Ok(secret_key_base) = env.get_string("SECRET_KEY_BASE")
+  let secret_key_base = wisp.random_string(64)
 
   let assert Ok(_) =
     wisp_mist.handler(router.handle_request, secret_key_base)
