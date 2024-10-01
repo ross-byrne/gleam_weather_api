@@ -69,7 +69,7 @@ pub fn current_decoder() {
   )
 }
 
-pub fn weather_response_decoder() {
+pub fn api_response_decoder() {
   dynamic.decode8(
     ApiResponse,
     dynamic.field("latitude", dynamic.float),
@@ -83,7 +83,7 @@ pub fn weather_response_decoder() {
   )
 }
 
-pub fn weather_response_encoder(response: ApiResponse) {
+pub fn api_response_encoder(response: ApiResponse) {
   // TODO: Need to encode hour_units and hourly
   json.object([
     #("latitude", json.float(response.latitude)),

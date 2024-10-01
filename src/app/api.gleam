@@ -11,8 +11,8 @@ import wisp.{type Response}
 /// handler for getting weather forecast
 pub fn get_weather() -> Response {
   case get_weather_api_result() {
-    Ok(weather_response) -> {
-      weather.weather_response_encoder(weather_response)
+    Ok(response) -> {
+      weather.api_response_encoder(response)
       |> json.to_string_builder
       |> wisp.json_response(200)
     }
@@ -52,7 +52,7 @@ fn fetch_weather() -> Result(HttpResponse(String), String) {
 fn get_weather_api_result() -> Result(ApiResponse, String) {
   use resp <- result.try(fetch_weather())
 
-  case json.decode(from: resp.body, using: weather.weather_response_decoder()) {
+  case json.decode(from: resp.body, using: weather.api_response_decoder()) {
     Ok(response) -> Ok(response)
     // Error(decode_error) -> Error("Failed to get Response from Weather API")
     // TODO: For debugging, remove
